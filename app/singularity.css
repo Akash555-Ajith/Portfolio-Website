@@ -10,6 +10,7 @@
  * ========================================================================== */
 
 .sg-root {
+  isolation: isolate;
   --p: 0;
 
   --sg-bg: #05070c;
@@ -26,6 +27,33 @@
   background: var(--sg-bg);
   color: var(--sg-fg);
   overflow-x: clip;
+}
+
+/* The live galaxy is fixed behind all chapters, hidden throughout the plunge. */
+.sg-galaxy {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.4s ease, visibility 1.4s;
+  background: #02030a url('/videos/milky-way-poster.webp') center / cover no-repeat;
+}
+.sg-root[data-inside="true"] .sg-galaxy { opacity: 1; visibility: visible; }
+.sg-galaxy-canvas { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .6s ease; }
+.sg-galaxy-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(3,5,12,.79), rgba(3,5,12,.38) 70%, rgba(3,5,12,.44)),
+    linear-gradient(0deg, rgba(3,5,12,.8), transparent 25%, transparent 75%, rgba(3,5,12,.35));
+}
+.sg-root[data-inside="true"] .sg-hero-p,
+.sg-root[data-inside="true"] .sg-ch3-note,
+.sg-root[data-inside="true"] .sg-tl-body p,
+.sg-root[data-inside="true"] .sg-ch4-p { color: rgba(245,244,249,.85); text-shadow: 0 1px 8px #000; }
+@media (max-width: 767px) {
+  .sg-galaxy-shade { background: rgba(3,5,12,.68); }
 }
 
 .sg-root a {

@@ -107,16 +107,12 @@ const BlackHoleCanvas: React.FC<Props> = ({ control, onStatus }) => {
         const h = container.clientHeight || window.innerHeight;
         const mobile = window.matchMedia(MOBILE_QUERY).matches;
 
-        // MSAA is pointless here (the whole frame is one raymarched quad, no
-        // geometric edges) and a capped pixel ratio keeps the per-pixel
-        // raymarch affordable on retina displays — bloom softens the result
-        // anyway, so the lower internal resolution is not visible. Phones take
-        // the extra step down to 1: a per-pixel raymarch at 3x is not something
-        // a phone GPU should be asked to do 60 times a second.
+        // Render extra detail on high-density displays while bounding the
+        // per-pixel raymarch cost on phones. The dolly is rendered, never enlarged.
         renderer = new THREE.WebGPURenderer({ antialias: false });
         renderer.setSize(w, h);
         renderer.setPixelRatio(
-          Math.min(window.devicePixelRatio, mobile ? 1 : 1.25)
+          Math.min(window.devicePixelRatio, mobile ? 1.5 : 2)
         );
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         Object.assign(renderer.domElement.style, {

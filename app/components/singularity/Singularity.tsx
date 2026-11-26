@@ -6,6 +6,7 @@ import HeroSection from "./HeroSection";
 import ProjectsSection from "./ProjectsSection";
 import TimelineSection from "./TimelineSection";
 import SkillsSection from "./SkillsSection";
+import GalaxyBackground from "./GalaxyBackground";
 import ContactSection from "./ContactSection";
 import StageHud from "./StageHud";
 import { BlackHoleControl } from "../BlackHoleCanvas";
@@ -490,6 +491,8 @@ const Singularity: React.FC = () => {
     const tick = (dt: number) => {
       if (gpuStatus.current === false) killIntro();
       const st = window.scrollY;
+      const inside = introOff || st >= geo.introTop + geo.introH - 2;
+      if (root.dataset.inside !== String(inside)) root.dataset.inside = String(inside);
       if (!introOff) {
         runIntro(st);
         revealHero(st);
@@ -688,6 +691,7 @@ const Singularity: React.FC = () => {
 
   return (
     <div className="sg-root" ref={rootRef}>
+      <GalaxyBackground />
       {/* Fixed, and outside the sticky intro, so it keeps covering the screen
           through the scroll jump that hands off to the site. */}
       <div className="sg-blackout" data-blackout aria-hidden />
