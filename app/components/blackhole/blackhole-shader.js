@@ -119,33 +119,40 @@ const blackbodyColor = Fn(([tempK]) => {
   return vec3(r, g, b);
 });
 
-// Procedural star field using grid-based placement
+// A moving celestial sphere, sampled AFTER the rays have bent around the hole.
+// Tangential star trails become curved arcs through the same lensing as the disc.
 const createStarField = (uniforms) => Fn(([rayDir]) => {
-  const theta = atan(rayDir.z, rayDir.x);
-  const phi = asin(clamp(rayDir.y, float(-1.0), float(1.0)));
+  const forward = normalize(uniforms.cameraTarget.sub(uniforms.cameraPosition));
+  const right = normalize(cross(vec3(0, 1, 0), forward));
+  const up = cross(forward, right);
+  const proximity = clamp(float(7).div(length(uniforms.cameraPosition)), 0, 1);
+  const theta = atan(dot(rayDir, up), dot(rayDir, right))
+    .add(uniforms.time.mul(0.018));
+  const phi = asin(clamp(dot(rayDir, forward), -0.9999, 0.9999));
+  const sky = vec3(0).toVar('sky');
 
-  const gridScale = float(60.0).div(uniforms.starSize);
-  const scaledCoord = vec2(theta, phi).mul(gridScale);
-  const cell = floor(scaledCoord);
-  const cellUV = fract(scaledCoord);
-
-  const cellHash = hash21(cell);
-  const starProb = step(float(1.0).sub(uniforms.starDensity), cellHash);
-
-  const starPos = hash22(cell.add(42.0)).mul(0.8).add(0.1);
-  const distToStar = length(cellUV.sub(starPos));
-
-  const baseSizeVar = hash21(cell.add(100.0)).mul(0.03).add(0.01);
-  const finalStarSize = baseSizeVar.mul(uniforms.starSize);
-
-  const starCore = smoothstep(finalStarSize, float(0.0), distToStar);
-  const starGlow = smoothstep(finalStarSize.mul(3.0), float(0.0), distToStar).mul(0.3);
-  const starIntensity = starCore.add(starGlow).mul(starProb);
-
-  const colorTemp = hash21(cell.add(200.0));
-  const starColor = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.95, 0.8), colorTemp);
-
-  return starColor.mul(starIntensity).mul(uniforms.starBrightness);
+  // Different grid scales avoid a single repeated star size or visible rows.
+  for (let layer = 0; layer < 2; layer++) {
+    const gridScale = float(layer === 0 ? 95 : 161).div(uniforms.starSize);
+    const coord = vec2(theta, phi).mul(gridScale).add(layer * 37.31);
+    const cell = floor(coord);
+    const cellUV = fract(coord);
+    const seed = hash21(cell.add(layer * 19.7));
+    const present = step(float(1).sub(uniforms.starDensity), seed);
+    const offset = cellUV.sub(hash22(cell.add(42)).mul(0.5).add(0.25));
+    const size = hash21(cell.add(100)).mul(0.032).add(0.024);
+    // Longitude follows the tangent to the hole. The streak length grows as
+    // the visitor approaches, with a sharp core inside every faint trail.
+    const trailWidth = size.mul(float(2.2).add(proximity.mul(5)));
+    const core = float(1).sub(smoothstep(0, size, length(offset)));
+    const trailDistance = length(vec2(offset.x.div(trailWidth), offset.y.div(size)));
+    const trail = float(1).sub(smoothstep(0, 1, trailDistance)).mul(0.42);
+    const tint = mix(vec3(0.55, 0.68, 1), vec3(1, 0.91, 0.76), hash21(cell.add(200)));
+    const twinkle = sin(uniforms.time.mul(0.7).add(seed.mul(80))).mul(0.12).add(0.88);
+    sky.addAssign(tint.mul(core.add(trail)).mul(present).mul(twinkle)
+      .mul(layer === 0 ? 1 : 0.48));
+  }
+  return sky.mul(uniforms.starBrightness);
 });
 
 // Procedural nebula clouds - two FBM layers
@@ -223,7 +230,12 @@ const createAccretionDiskColor = (uniforms) => Fn(([hitR, hitAngle, time, rayDir
   const turbulence = mix(turbulence2, turbulence1, blendFactor);
   ringOpacity.assign(pow(clamp(turbulence, float(0.0), float(1.0)), uniforms.turbulenceSharpness));
 
-  const finalOpacity = ringOpacity.mul(edgeFalloff);
+  // Narrow radial filaments orbit with the gas, rather than moving the whole
+  // image. Keep a continuous luminous disc beneath the turbulent detail.
+  const filaments = sin(hitR.mul(38.0).add(turbulence.mul(5.0)))
+    .mul(0.5).add(0.5);
+  const finalOpacity = ringOpacity.mul(0.68).add(0.16)
+    .mul(filaments.mul(0.32).add(0.68)).mul(edgeFalloff);
   const finalColor = diskColor.mul(uniforms.diskBrightness);
   return vec4(finalColor, finalOpacity);
 });
@@ -287,7 +299,7 @@ export function createBlackHoleShader(uniforms) {
     rayPos.addAssign(rayDir.mul(tEnter));
 
     // Raymarching loop
-    Loop(48, () => {
+    Loop(88, () => {
       If(escaped.greaterThan(0.5).or(captured.greaterThan(0.5)).or(alpha.greaterThan(0.99)), () => {
         Break();
       });
@@ -311,7 +323,7 @@ export function createBlackHoleShader(uniforms) {
       // coarse steps far away where paths are nearly straight. Cuts the average
       // iterations per ray dramatically with no visible quality loss.
       const stepLen = uniforms.stepSize
-        .mul(clamp(r.mul(0.18), float(1.0), float(4.0)))
+        .mul(clamp(r.mul(0.18), float(0.25), float(4.0)))
         .toVar('stepLen');
 
       // Gravitational light bending: a = -rs/r² toward center
@@ -363,8 +375,8 @@ export function createBlackHoleShader(uniforms) {
       color.addAssign(bgColor.mul(float(1.0).sub(alpha)));
     });
 
-    // Gamma correction
-    const finalColor = pow(color, vec3(1.0 / 2.2));
-    return vec4(finalColor, 1.0);
+    // Keep radiance linear; the renderer handles tone mapping and output gamma.
+    // Applying gamma here too washes out the gold filaments and dark silhouette.
+    return vec4(color, 1.0);
   })();
 }

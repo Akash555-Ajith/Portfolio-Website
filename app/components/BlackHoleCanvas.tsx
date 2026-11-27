@@ -22,36 +22,32 @@ export interface BlackHoleControl {
   setCamera: (progress: number, px: number, py: number) => void;
 }
 
-// Tuned defaults copied from webgpu-black-hole/main.js (defaultConfig).
-// Stars + nebula are disabled here on purpose: the surrounding 2D star-warp
-// canvas is THE starfield, and mix-blend-screen keeps the disc clean. Flip these
-// back to `true` if you want the WebGPU background stars/nebula inside the disc.
+// Reference-inspired, nearly edge-on disc: a white-gold approaching edge,
+// fine orbiting filaments, and a dark silhouette against lensed background stars.
 const BLACK_HOLE_CONFIG = {
-  blackHoleMass: 0.4,
-  diskInnerRadius: 4.1,
-  diskOuterRadius: 14.5,
-  // Cooled from 49.78 so the blackbody disc sits gold rather than white-hot —
-  // the same gold the rest of the page is accented in.
-  diskTemperature: 42,
-  temperatureFalloff: 5.22,
-  diskBrightness: 5,
-  diskRotationSpeed: -8.7,
-  turbulenceScale: 1.81,
-  turbulenceStretch: 0.75,
-  turbulenceSharpness: 7.4,
+  blackHoleMass: 0.6,
+  diskInnerRadius: 4.2,
+  diskOuterRadius: 13,
+  diskTemperature: 9.5,
+  temperatureFalloff: 2.1,
+  diskBrightness: 2.4,
+  diskRotationSpeed: -18,
+  turbulenceScale: 3.2,
+  turbulenceStretch: 0.55,
+  turbulenceSharpness: 2.6,
   turbulenceCycleTime: 5,
   turbulenceLacunarity: 3,
   turbulencePersistence: 0.8,
-  diskEdgeSoftnessInner: 0.18,
-  diskEdgeSoftnessOuter: 0.5,
-  gravitationalLensing: 2.4,
-  dopplerStrength: 1.0,
-  stepSize: 1,
-  starsEnabled: false,
+  diskEdgeSoftnessInner: 0.06,
+  diskEdgeSoftnessOuter: 0.35,
+  gravitationalLensing: 2.3,
+  dopplerStrength: 3.4,
+  stepSize: 0.65,
+  starsEnabled: true,
   starBackgroundColor: "#000000",
-  starDensity: 0.1,
-  starSize: 1.2,
-  starBrightness: 0.1,
+  starDensity: 0.38,
+  starSize: 1,
+  starBrightness: 2.2,
   nebulaEnabled: false,
   nebula1Scale: 2,
   nebula1Density: 0.5,
@@ -63,7 +59,7 @@ const BLACK_HOLE_CONFIG = {
   nebula2Color: "#010615",
 };
 
-const BLOOM = { strength: 0.68, radius: 0.2, threshold: 0.4 };
+const BLOOM = { strength: 0.2, radius: 0.08, threshold: 1.2 };
 
 interface Props {
   control?: React.MutableRefObject<BlackHoleControl | null>;
@@ -130,18 +126,11 @@ const BlackHoleCanvas: React.FC<Props> = ({ control, onStatus }) => {
 
         const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
 
-        // Camera dolly path — the "fall in". progress 0 → 1 flies the camera from
-        // a wide shot toward the disc, re-raymarched every frame at native
-        // resolution (so it stays sharp, unlike CSS-scaling the canvas). The
-        // portrait start sits further out and lower, so the disc still reads as
-        // a disc in a 9:19.5 frame.
-        const CAM_FAR = mobile
-          ? { x: 0, y: -5.1, z: 20 }
-          : { x: 0, y: -4.6, z: 18 };
-        // Dives in past the disc's inner edge, almost to the horizon — the
-        // "inside the black hole" plunge. The darkening veil over the intro
-        // masks the final, most extreme frames.
-        const CAM_NEAR = { x: 0, y: -0.4, z: 1.4 };
+        // Stay just above the disc plane, like the reference's forward flight.
+        // Start at the reference's close view: the disc spans most of a wide
+        // screen. Portrait keeps its central silhouette with the outer disc
+        // extending toward the edges. The existing plunge curve stays intact.
+        const startingDistance = () => Math.max(17, 15.5 / camera.aspect);
         let camProgress = 0;
         let camPx = 0;
         let camPy = 0;
@@ -151,19 +140,23 @@ const BlackHoleCanvas: React.FC<Props> = ({ control, onStatus }) => {
         simulation.onResize(w, h);
 
         const applyCamera = () => {
-          const p = camProgress;
+          // The parent supplies squared scroll progress. Exponential distance
+          // makes the horizon grow continuously, then pass around the camera,
+          // within the existing 2.1-second navigation (no extra timeline).
+          const p = Math.sqrt(Math.max(0, Math.min(1, camProgress)));
+          const approach = Math.min(1, p / 0.88);
+          const distance = startingDistance() * Math.pow(0.036, approach);
+          const parallax = (1 - approach) * 0.35;
           camera.position.set(
-            CAM_FAR.x + (CAM_NEAR.x - CAM_FAR.x) * p + camPx * 3,
-            CAM_FAR.y + (CAM_NEAR.y - CAM_FAR.y) * p + camPy * 2,
-            CAM_FAR.z + (CAM_NEAR.z - CAM_FAR.z) * p
+            camPx * parallax,
+            -distance * (0.14 - approach * 0.08) + camPy * parallax * 0.3,
+            distance
           );
           camera.lookAt(0, 0, 0);
-          // Widen the FOV and roll the view as we plunge — the tunnel-vertigo
-          // cues that sell "falling inside" rather than zooming a flat image.
           const u = simulation.uniforms;
           if (u) {
-            u.cameraFovScale.value = 1 - p * 0.45;
-            u.cameraRoll.value = p * 0.3;
+            u.cameraFovScale.value = 1.45 - approach * 0.12;
+            u.cameraRoll.value = -0.035 + approach * 0.09;
           }
         };
         applyCamera();

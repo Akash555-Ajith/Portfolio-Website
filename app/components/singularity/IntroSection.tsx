@@ -6,8 +6,8 @@ import BlackHoleCanvas, { BlackHoleControl } from "../BlackHoleCanvas";
  * hands its scroll progress to the controller as `--p`; from there the titles,
  * the star canvas, the veil and the raymarched camera all move together.
  *
- * Layering, back to front: stars (2D canvas) → black hole (WebGPU, screened
- * over the stars) → vignette → titles → hint/telemetry → the warm veil that
+ * Layering, back to front: fallback stars → black hole and lensed sky (WebGPU)
+ * → vignette → titles → hint/telemetry → the warm veil that
  * closes over everything as you cross the horizon.
  */
 const IntroSection: React.FC<{

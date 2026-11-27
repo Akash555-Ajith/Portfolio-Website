@@ -7,6 +7,7 @@ import ProjectsSection from "./ProjectsSection";
 import TimelineSection from "./TimelineSection";
 import SkillsSection from "./SkillsSection";
 import GalaxyBackground from "./GalaxyBackground";
+import DesktopEffects from "./DesktopEffects";
 import ContactSection from "./ContactSection";
 import StageHud from "./StageHud";
 import { BlackHoleControl } from "../BlackHoleCanvas";
@@ -692,6 +693,7 @@ const Singularity: React.FC = () => {
   return (
     <div className="sg-root" ref={rootRef}>
       <GalaxyBackground />
+      <DesktopEffects />
       {/* Fixed, and outside the sticky intro, so it keeps covering the screen
           through the scroll jump that hands off to the site. */}
       <div className="sg-blackout" data-blackout aria-hidden />
