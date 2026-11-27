@@ -18,13 +18,32 @@ export const copy = {
   timelineNote: "Junior Web Development internships I've completed.",
 };
 export interface Project {
-  id: number; title: string; tag: string; img: string; des: string; iconLists: string[]; link: string;
+  id: number; title: string; tag: string; img: string; des: string; stack: string[]; link: string;
 }
 // Add only Akash's supplied projects here.
-export const projects: Project[] = [];
+export const projects: Project[] = [
+  {
+    id: 1,
+    title: "CataCloud",
+    tag: "B2B commerce & catalogues",
+    img: "/projects/catacloud.svg",
+    des: "A B2B commerce platform for creating storefronts and custom product catalogues. Manage inventory, build proposals, and handle orders through a central dashboard, with presets for different industries.",
+    stack: ["Next.js", "TypeScript", "Supabase"],
+    link: "https://github.com/Akash555-Ajith/catacloud",
+  },
+  {
+    id: 2,
+    title: "Shopping Cart",
+    tag: "E-commerce application",
+    img: "/projects/shopping-cart.webp",
+    des: "A PHP and MySQL shopping application with product search, cart quantity updates, user accounts, and order tracking. An admin area manages products, categories, brands, orders, and payment records.",
+    stack: ["PHP", "MySQL", "Bootstrap"],
+    link: "https://github.com/Akash555-Ajith/Shopping-Cart",
+  },
+];
 export const timeline = [
-  { when: "Completed internship", title: "Junior Web Development — Tatos", body: "Web development internship at Tatos.", link: "https://tatos.tech/" },
-  { when: "Completed internship", title: "Junior Web Development — Ariussoft", body: "Web development internship at Ariussoft.", link: "https://ariussoft.com/" },
+  { when: "Completed internship", title: "Junior Web Development — Tatos", body: "Completed a Junior Web Development internship at Tatos. The company builds custom websites and mobile applications, alongside digital strategy, design, and automation services.", link: "https://tatos.tech/", logo: "/companies/tatos.png", company: "Tatos", logoStyle: "dark" },
+  { when: "Completed internship", title: "Junior Web Development — Ariussoft", body: "Completed a Junior Web Development internship at Ariussoft. Based in Kochi, the company offers website and web application development, e-commerce, mobile apps, hosting, and digital marketing.", link: "https://ariussoft.com/", logo: "/companies/ariussoft.png", company: "Ariussoft", logoStyle: "light" },
 ];
 export const skillGroups = [
   { title: "Frontend development", tools: ["React", "HTML", "CSS", "Bootstrap"] },

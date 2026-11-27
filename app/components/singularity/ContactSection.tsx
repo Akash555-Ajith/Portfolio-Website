@@ -1,13 +1,46 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { EMAIL, socialMedia } from "@/app/data";
+import { ContactMessage, sendContactMessage } from "@/app/lib/contact";
 
 export default function ContactSection() {
   const [status, setStatus] = useState("");
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const pending = useRef(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("Sending is not connected yet. Your message has not been sent. You can email me directly using the link below.");
+    if (pending.current) return;
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+    if (fields.get("website")) return;
+    const message: ContactMessage = {
+      name: String(fields.get("name") ?? "").trim(),
+      email: String(fields.get("email") ?? "").trim(),
+      subject: String(fields.get("subject") ?? "").trim(),
+      message: String(fields.get("message") ?? "").trim(),
+    };
+    if (Object.values(message).some(value => !value)) {
+      setFailed(true);
+      setStatus("Please complete every field before sending.");
+      return;
+    }
+    pending.current = true;
+    setSending(true);
+    setFailed(false);
+    setStatus("Submitting your message…");
+    try {
+      await sendContactMessage(message);
+      setStatus("Thank you! Your message has been submitted.");
+      form.reset();
+    } catch {
+      setFailed(true);
+      setStatus("We couldn’t confirm your submission. Your message is still here—please try again or email me directly.");
+    } finally {
+      pending.current = false;
+      setSending(false);
+    }
   }
   return (
     <section className="sg-ch4" data-ch id="ch4">
@@ -25,17 +58,20 @@ export default function ContactSection() {
               </a>
             ))}
           </div>
-          <form className="sg-contact-form" onSubmit={submit}>
+          <form className="sg-contact-form" onSubmit={submit} aria-busy={sending}>
+            <div className="sg-form-trap" aria-hidden="true">
+              <label>Leave this field empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
+            </div>
             <div className="sg-form-row">
               <label>Name<input name="name" autoComplete="name" required maxLength={100} /></label>
               <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
             </div>
             <label>Subject<input name="subject" required maxLength={160} /></label>
             <label>Message<textarea name="message" required maxLength={5000} rows={4} /></label>
-            <p className="sg-form-note" id="form-note">Direct message sending will be available soon.</p>
-            <button className="sg-btn sg-btn-primary" type="submit" aria-describedby="form-note">Send message</button>
+            <p className="sg-form-note" id="form-note">Your message is sent to my email through FormSubmit.</p>
+            <button className="sg-btn sg-btn-primary" type="submit" disabled={sending} aria-describedby="form-note">{sending ? "Sending…" : "Send message"}</button>
             <p className="sg-form-status" role="status" aria-live="polite">{status}</p>
-            {status && <a className="sg-accent" href={`mailto:${EMAIL}`}>Email me directly</a>}
+            {failed && <a className="sg-accent" href={`mailto:${EMAIL}`}>Email me directly</a>}
           </form>
         </div>
         <div className="sg-copyright">© {new Date().getFullYear()} Akash Ajith</div>

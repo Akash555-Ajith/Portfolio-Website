@@ -17,7 +17,8 @@ All personal content is in `app/data.ts`. The page progresses through About, Pro
 
 - Currently learning DevOps: GitHub, Docker, AWS, Ansible.
 - Contact: WhatsApp, Instagram, GitHub, LinkedIn, and the latest supplied email, **akasheajith2005@gmail.com**.
-- No project details were supplied. Projects currently links to Akash's GitHub. Add entries to the typed `projects` array to populate the original animated project cards.
+- Featured projects: [CataCloud](https://github.com/Akash555-Ajith/catacloud) and [Shopping Cart](https://github.com/Akash555-Ajith/Shopping-Cart). Descriptions are based on their public source and README; project artwork comes from those repositories.
+- Company descriptions and logos come from the official [Tatos](https://tatos.tech/) and [Ariussoft](https://ariussoft.com/) websites. They describe the companies, not additional internship responsibilities.
 
 ## Navigation
 
@@ -27,7 +28,11 @@ The bottom navigation, arrow keys, Page Up/Down, Space/Shift+Space, Home, and En
 
 ## Contact form
 
-The Name, Email, Subject, and Message fields are **frontend-only**, as requested. Browser validation checks required fields and email format. Submitting displays an explicit unsent notice; it does not make a network request, store the message, or send email. Email integration is intentionally deferred until Akash requests it.
+Name, Email, Subject, and Message are submitted through [FormSubmit](https://formsubmit.co/) to **akasheajith2005@gmail.com** without leaving the portfolio. The visitor's address becomes the Reply-To address. There are no email passwords or API secrets in the project.
+
+**Activation required:** submit the form once from the website, then open the confirmation email in Akash's inbox (check spam too) and activate the form. Submit another message after activation to verify delivery. Repeat activation if FormSubmit requests it for a different site URL. Code and mocked response checks cannot verify inbox delivery.
+
+Required fields and email format are validated before sending. A hidden honeypot deters simple bots. Duplicate submissions are blocked while a request is pending, and a 20-second timeout restores the form on a stalled request. Failed submissions preserve the fields and show a direct email link. The success message reports acceptance by FormSubmit, not guaranteed inbox delivery. Messages pass through FormSubmit; review its service limits and spam handling before relying on it at higher traffic volumes.
 
 ## Fonts and credits
 

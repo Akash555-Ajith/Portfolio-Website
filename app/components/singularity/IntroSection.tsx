@@ -25,14 +25,9 @@ const IntroSection: React.FC<{
       <div className="sg-intro-vignette" aria-hidden />
 
       <div className="sg-intro-titles">
-        <h1 className="sg-title sg-title-top" data-text="AKASH&#8217;S">
-          AKASH&#8217;S
+        <h1 className="sg-domain-title">
+          Akash’s <span>Domain</span>
         </h1>
-        <div className="sg-title-bottom-wrap">
-          <h1 className="sg-title sg-title-bottom" data-text="SPACE">
-            SPACE
-          </h1>
-        </div>
       </div>
 
       <div className="sg-hint">

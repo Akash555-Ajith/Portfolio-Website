@@ -32,6 +32,10 @@ const TimelineSection: React.FC = () => (
               <span className="sg-tl-dot" data-dot aria-hidden />
               <div className="sg-tl-when sg-mono">{t.when}</div>
               <div className="sg-tl-body">
+                <a className={`sg-company-logo sg-company-logo-${t.logoStyle}`} href={t.link} target="_blank" rel="noopener noreferrer" aria-label={`${t.company} website`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={t.logo} alt={`${t.company} logo`} width={160} height={48} />
+                </a>
                 <h3><a href={t.link} target="_blank" rel="noopener noreferrer">{t.title}</a></h3>
                 <p>{t.body}</p>
               </div>

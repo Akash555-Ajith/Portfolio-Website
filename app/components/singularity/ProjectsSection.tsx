@@ -2,6 +2,9 @@ import React from "react";
 import Image from "next/image";
 import { projects, GITHUB_URL } from "@/app/data";
 import { trackProjectView } from "../GoogleAnalytics";
+import { SiNextdotjs, SiTypescript, SiSupabase, SiPhp, SiMysql, SiBootstrap } from "react-icons/si";
+
+const stackIcons = { "Next.js": SiNextdotjs, TypeScript: SiTypescript, Supabase: SiSupabase, PHP: SiPhp, MySQL: SiMysql, Bootstrap: SiBootstrap };
 
 /**
  * 02 Accretion disk — the projects.
@@ -34,7 +37,7 @@ const ProjectsSection: React.FC = () => (
         </div>
       </header>
 
-      <div className="sg-stage" data-f-stage>
+      <div className={`sg-stage${projects.length === 2 ? " sg-featured-stage" : ""}`} data-f-stage data-section-scroll tabIndex={0}>
         {!projects.length && (
           <div className="sg-project-empty">
             <a className="sg-btn sg-btn-primary" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">Explore my GitHub</a>
@@ -51,15 +54,12 @@ const ProjectsSection: React.FC = () => (
             onClick={() => trackProjectView(p.title)}
           >
             <div className="sg-card-media">
-              {/* bg.png holds the frame while the screenshot decodes. */}
-              <Image src="/bg.png" alt="" fill sizes="640px" aria-hidden />
               <Image
                 src={p.img}
                 alt={p.title}
                 fill
                 sizes="(max-width: 767px) 100vw, 640px"
               />
-              <div className="sg-card-scrim" aria-hidden />
               <div className="sg-card-tag sg-mono">{p.tag}</div>
             </div>
 
@@ -71,17 +71,13 @@ const ProjectsSection: React.FC = () => (
                 {p.des}
               </p>
               <div className="sg-card-foot">
-                <div className="sg-icons">
-                  {p.iconLists.map((icon) => (
-                    <span className="sg-icon" key={icon}>
-                      {/* Stack badges are tiny fixed-size marks — no point
-                          round-tripping them through the image optimizer. */}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={icon} alt="" aria-hidden />
-                    </span>
-                  ))}
+                <div className="sg-project-stack">
+                  {p.stack.map((name) => {
+                    const Icon = stackIcons[name as keyof typeof stackIcons];
+                    return <span key={name}>{Icon && <Icon aria-hidden />} {name}</span>;
+                  })}
                 </div>
-                <span className="sg-card-live sg-mono">Live site &#8599;</span>
+                <span className="sg-card-live sg-mono">View on GitHub &#8599;</span>
               </div>
             </div>
           </a>

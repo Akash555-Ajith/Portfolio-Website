@@ -309,6 +309,20 @@ const Singularity: React.FC = () => {
       const prog = clamp(cp / T.enterEnd, 0, 1) * n;
       const finish = smooth(clamp((cp - T.enterEnd) / T.settleWindow, 0, 1));
 
+      // Two featured projects share a readable grid; retain the incoming sweep.
+      // On phones the stage scrolls internally so neither description is hidden.
+      if (n === 2) {
+        el.cards.forEach((card, i) => {
+          const reveal = reduced ? 1 : smooth(clamp(prog - i, 0, 1));
+          setStyle(card, "opacity", reveal.toFixed(3));
+          setStyle(card, "transform", `translateY(${((1 - reveal) * 32).toFixed(1)}px)`);
+          setStyle(card, "pointer-events", reveal > 0.75 ? "auto" : "none");
+        });
+        setText(el.count, String(clamp(Math.ceil(prog) || 1, 1, n)).padStart(2, "0"));
+        setText(el.fphase, cp >= T.enterEnd ? "Featured projects" : "Infalling");
+        return;
+      }
+
       const dw = Math.min(T.deckMaxW, W * T.deckWidthFrac);
       const dh = Math.min(H * T.deckHeightFrac, dw * T.deckAspect);
       const dx = (W - dw) / 2;
